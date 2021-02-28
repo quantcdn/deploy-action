@@ -27,8 +27,8 @@ jobs:
 
       - name: Prepare a test file
         run: |
-          mkdir -p build
-          echo '<html><head><tille>Test</title></head><body><h1>Action test</h1></body></html>' > build/deploy-$(date +"%s").html
+          mkdir -p build/deploy
+          echo -e "<html><head><tille>Test</title></head><body><h1>Deploy $(date +'%s')</h1></body></html>" > build/deploy/index.html
 
       - name: Deploy
         uses: ./
