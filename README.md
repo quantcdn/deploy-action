@@ -24,7 +24,7 @@ jobs:
         with:
           customer: <quant-customer-id>
           project: <quant-project-id>
-          token: $({ secrets.QUANT_TOKEN })
+          token: ${{ secrets.QUANT_TOKEN }}
           dir: <build>
 
 ```
