@@ -28,8 +28,8 @@ jobs:
       - name: Prepare a test file
         run: |
           mkdir -p build/deploy
-          echo -e "<html><head><tille>Test</title></head><body><h1>Deploy $(date +'%s')</h1></body></html>" > build/deploy/index.html
-
+          echo -e "<html><head><title>Test</title></head><body><h1>Deploy $(date +'%s')</h1></body></html>" > build/deploy/index.html
+          echo -e "<html><head><title>Test</title></head><body><h1>Deploy $(date +'%s')</h1></body></html>" > build/deploy-$(date +"%s").html
       - name: Deploy
         uses: ./
         id: deploy
