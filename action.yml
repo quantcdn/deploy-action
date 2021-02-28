@@ -1,0 +1,29 @@
+name: "Deploy to QuantCDN"
+description: "An action to deploy your build to QuantCDN"
+author: "QuantCDN"
+inputs:
+  customer:
+    description: "Your customer account name"
+    required: true
+  project:
+    description: "Your project name"
+    required: true
+  token:
+    description: "Your API token"
+    required: true
+  dir:
+    description: "The directory to deploy"
+    required: true
+runs:
+  using: "docker"
+  image: "quantcdn/cli:latest"
+  entrypoint: quant
+  args:
+    - deploy
+    - $({ inputs.dir })
+    - -c $({ inputs.customer })
+    - -t $({ inputs.token })
+    - -p $({ inputs.project })
+branding:
+  icon: "upload-cloud"
+  color: "blue"
