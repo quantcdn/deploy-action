@@ -20,10 +20,10 @@ runs:
   entrypoint: quant
   args:
     - deploy
-    - $({ inputs.dir })
-    - -c $({ inputs.customer })
-    - -t $({ inputs.token })
-    - -p $({ inputs.project })
+    - ${{ inputs.dir }}
+    - -c ${{ inputs.customer }}
+    - -t ${{ inputs.token }}
+    - -p ${{ inputs.project }}
 branding:
   icon: "upload-cloud"
   color: "blue"
