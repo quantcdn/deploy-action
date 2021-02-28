@@ -14,13 +14,14 @@ inputs:
   dir:
     description: "The directory to deploy"
     required: true
+    default: ""
 runs:
   using: "docker"
   image: "quantcdn/cli:latest"
   entrypoint: quant
   args:
     - deploy
-    - ${{ inputs.dir }}
+    - /github/workspace/${{ inputs.dir }}
     - -c ${{ inputs.customer }}
     - -t ${{ inputs.token }}
     - -p ${{ inputs.project }}
