@@ -34,7 +34,7 @@ runs:
     - -t ${{ inputs.token }}
     - -p ${{ inputs.project }}
     - -a ${{ inputs.attachments }}
-    - -u ${{ inputs.skip-unpublish }}
+    - --skip-unpublish=${{ inputs.skip-unpublish }}
 branding:
   icon: "upload-cloud"
   color: "blue"
