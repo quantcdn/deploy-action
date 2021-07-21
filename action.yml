@@ -19,10 +19,6 @@ inputs:
     description: 'Find attachments'
     required: false
     default: false
-  skip-unpublish:
-    description: 'Skip automatic unpublishing of assets'
-    required: false
-    default: false
 runs:
   using: "docker"
   image: "docker://quantcdn/cli:1.5.0"
@@ -34,7 +30,6 @@ runs:
     - -t ${{ inputs.token }}
     - -p ${{ inputs.project }}
     - -a ${{ inputs.attachments }}
-    - --skip-unpublish=${{ inputs.skip-unpublish }}
 branding:
   icon: "upload-cloud"
   color: "blue"
