@@ -44,6 +44,11 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
+      - name: Prepare a test file
+        run: |
+          mkdir -p build/deploy
+          echo -e "<html><head><title>Test</title></head><body><h1>Deploy $(date +'%s')</h1></body></html>" > build/deploy/index.html
+
       # Deploy the state.
       - name: Deploy
         uses: ./
