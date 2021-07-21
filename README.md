@@ -26,7 +26,7 @@ jobs:
           project: <quant-project-id>
           token: ${{ secrets.QUANT_TOKEN }}
           dir: <build>
-          args: --skip-unpublish
+          skip-unpublish: true
 
 ```
 
