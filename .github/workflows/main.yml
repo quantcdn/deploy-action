@@ -38,29 +38,13 @@ jobs:
           token: ${{ secrets.QUANT_TOKEN }}
           dir: build
 
-  test-args:
+  test-skip:
     runs-on: ubuntu-latest
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-      - name: Prepare a test file
-        run: |
-          mkdir -p build/deploy/publish
-          echo -e "<html><head><title>Test</title></head><body><h1>Deploy $(date +'%s')</h1></body></html>" > build/deploy/publish/index.html
-          echo -e "<html><head><title>Test</title></head><body><h1>Deploy $(date +'%s')</h1></body></html>" > build/deploy/publish/test.html
 
       # Deploy the state.
-      - name: Deploy
-        uses: ./
-        with:
-          customer: quant
-          project: github-actions
-          token: ${{ secrets.QUANT_TOKEN }}
-          dir: build
-
-      - name: Remove a file
-        run: rm build/deploy/publish/test.html
-
       - name: Deploy
         uses: ./
         with:
