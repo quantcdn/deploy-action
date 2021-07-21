@@ -16,7 +16,7 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  build:
+  test-deploy:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
@@ -32,9 +32,29 @@ jobs:
           echo -e "<html><head><title>Test</title></head><body><h1>Deploy $(date +'%s')</h1></body></html>" > build/deploy-$(date +"%s").html
       - name: Deploy
         uses: ./
-        id: deploy
         with:
           customer: quant
           project: github-actions
           token: ${{ secrets.QUANT_TOKEN }}
           dir: build
+
+  test-skip:
+    runs-on: ubuntu-latest
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Prepare a test file
+        run: |
+          mkdir -p build/deploy
+          echo -e "<html><head><title>Test</title></head><body><h1>Deploy $(date +'%s')</h1></body></html>" > build/deploy/index.html
+
+      # Deploy the state.
+      - name: Deploy
+        uses: ./
+        with:
+          customer: quant
+          project: github-actions
+          token: ${{ secrets.QUANT_TOKEN }}
+          dir: build
+          skip-unpublish: true

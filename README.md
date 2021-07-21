@@ -26,6 +26,7 @@ jobs:
           project: <quant-project-id>
           token: ${{ secrets.QUANT_TOKEN }}
           dir: <build>
+          args: --skip-unpublish
 
 ```
 
@@ -52,4 +53,7 @@ token:
 dir:
   description: "The directory to deploy"
   required: true
+args:
+  description: 'Additional arguments for deploy'
+  required: false
 ```
