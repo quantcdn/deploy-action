@@ -53,7 +53,8 @@ token:
 dir:
   description: "The directory to deploy"
   required: true
-args:
-  description: 'Additional arguments for deploy'
+skip-unpublish:
+  description: 'Skip automatic unpublishing of assets'
   required: false
+  default: false
 ```
