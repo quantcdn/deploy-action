@@ -15,6 +15,14 @@ inputs:
     description: "The directory to deploy"
     required: true
     default: ""
+  attachments:
+    description: 'Find attachments'
+    required: false
+    default: false
+  skip-unpublish:
+    description: 'Skip automatic unpublishing of assets'
+    required: false
+    default: false
 runs:
   using: "docker"
   image: "docker://quantcdn/cli:latest"
@@ -25,6 +33,8 @@ runs:
     - -c ${{ inputs.customer }}
     - -t ${{ inputs.token }}
     - -p ${{ inputs.project }}
+    - -a ${{ inputs.attachments }}
+    - -u ${{ inputs.skip-unpublish }}
 branding:
   icon: "upload-cloud"
   color: "blue"
