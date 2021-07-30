@@ -23,6 +23,10 @@ inputs:
     description: 'Skip automatic unpublishing of assets'
     required: false
     default: false
+  chunk-size:
+    description: 'Number of items proccessed in each chunk. Increase this value for more concurrency.'
+    required: false
+    default: 10
 runs:
   using: "docker"
   image: "docker://quantcdn/cli:1.7.0"
@@ -35,6 +39,7 @@ runs:
     - -p ${{ inputs.project }}
     - -a ${{ inputs.attachments }}
     - --skip-unpublish=${{ inputs.skip-unpublish }}
+    - --chunk-size=${{ inputs.chunk-size }}
 branding:
   icon: "upload-cloud"
   color: "blue"
