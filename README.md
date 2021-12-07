@@ -57,4 +57,12 @@ skip-unpublish:
   description: 'Skip automatic unpublishing of assets'
   required: false
   default: false
+skip-purge:
+  description: 'Skip automatic purge of cached assets in CDN'
+  required: false
+  default: false
+chunk-size:
+  description: 'Alter the concurrency of deployment'
+  required: false
+  default: 10
 ```

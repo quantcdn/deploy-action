@@ -23,6 +23,14 @@ inputs:
     description: 'Skip automatic unpublishing of assets'
     required: false
     default: false
+  skip-purge:
+    description: 'Skip automatic purge of cached assets in CDN'
+    required: false
+    default: false
+  chunk-size:
+    description: 'Alter the concurrency of deployment'
+    required: false
+    default: 10
 runs:
   using: "docker"
   image: "docker://quantcdn/cli:1.8.0"
@@ -35,6 +43,8 @@ runs:
     - -p ${{ inputs.project }}
     - -a ${{ inputs.attachments }}
     - --skip-unpublish=${{ inputs.skip-unpublish }}
+    - --skip-purge=${{ inputs.skip-purge }}
+    - --chunk-size=${{ inputs.chunk-size }}
 branding:
   icon: "upload-cloud"
   color: "blue"

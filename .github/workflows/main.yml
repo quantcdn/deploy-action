@@ -58,3 +58,5 @@ jobs:
           token: ${{ secrets.QUANT_TOKEN }}
           dir: build
           skip-unpublish: true
+          skip-purge: true
+          chunk-size: 10
