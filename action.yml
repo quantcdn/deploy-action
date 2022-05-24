@@ -37,7 +37,7 @@ inputs:
     default: 10
 runs:
   using: "docker"
-  image: "docker://quantcdn/cli:1.9.1"
+  image: "docker://quantcdn/cli:1.10.0"
   entrypoint: quant
   args:
     - deploy
