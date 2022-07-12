@@ -65,4 +65,8 @@ chunk-size:
   description: 'Alter the concurrency of deployment'
   required: false
   default: 10
+endpoint:
+  description: 'Specify the QuantCDN API endpoint'
+  required: false
+  default: 'https://api.quantcdn.io'
 ```
