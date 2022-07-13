@@ -35,6 +35,10 @@ inputs:
     description: 'Alter the concurrency of deployment'
     required: false
     default: 10
+  endpoint:
+    description: 'Specify the QuantCDN API endpoint'
+    required: false
+    default: 'https://api.quantcdn.io'
 runs:
   using: "docker"
   image: "docker://quantcdn/cli:1.10.0"
@@ -50,6 +54,7 @@ runs:
     - --skip-unpublish-regex="${{ inputs.skip-unpublish-regex }}"
     - --skip-purge=${{ inputs.skip-purge }}
     - --chunk-size=${{ inputs.chunk-size }}
+    - --endpoint=${{ inputs.endpoint }}
 branding:
   icon: "upload-cloud"
   color: "blue"
