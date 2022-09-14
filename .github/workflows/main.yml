@@ -59,4 +59,5 @@ jobs:
           dir: build
           skip-unpublish: true
           skip-purge: true
+          force: true
           chunk-size: 10
