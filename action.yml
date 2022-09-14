@@ -31,6 +31,10 @@ inputs:
     description: 'Skip automatic purge of cached assets in CDN'
     required: false
     default: false
+  force:
+    description: 'Force the deployment of assets (skip md5 check)'
+    required: false
+    default: false
   chunk-size:
     description: 'Alter the concurrency of deployment'
     required: false
@@ -41,7 +45,7 @@ inputs:
     default: 'https://api.quantcdn.io'
 runs:
   using: "docker"
-  image: "docker://quantcdn/cli:1.10.0"
+  image: "docker://quantcdn/cli:1.12.0"
   entrypoint: quant
   args:
     - deploy
@@ -53,6 +57,7 @@ runs:
     - --skip-unpublish=${{ inputs.skip-unpublish }}
     - --skip-unpublish-regex="${{ inputs.skip-unpublish-regex }}"
     - --skip-purge=${{ inputs.skip-purge }}
+    - --force=${{ inputs.force }}
     - --chunk-size=${{ inputs.chunk-size }}
     - --endpoint=${{ inputs.endpoint }}
 branding:

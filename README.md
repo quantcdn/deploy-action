@@ -61,6 +61,10 @@ skip-purge:
   description: 'Skip automatic purge of cached assets in CDN'
   required: false
   default: false
+force:
+  description: 'Force the deployment of assets (skip md5 check)'
+  required: false
+  default: false
 chunk-size:
   description: 'Alter the concurrency of deployment'
   required: false
