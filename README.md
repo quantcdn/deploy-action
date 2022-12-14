@@ -20,7 +20,7 @@ jobs:
       # Build the artefact or restore a cached copy.
       # - name: Build the deploy artefact
       #   run: npm run build
-      - uses: quantcdn/deploy-action@v1.0.1
+      - uses: quantcdn/deploy-action@v2.0.0
         with:
           customer: <quant-customer-id>
           project: <quant-project-id>
@@ -53,10 +53,19 @@ token:
 dir:
   description: "The directory to deploy"
   required: true
+  default: ""
+attachments:
+  description: 'Find attachments'
+  required: false
+  default: false
 skip-unpublish:
   description: 'Skip automatic unpublishing of assets'
   required: false
   default: false
+skip-unpublish-regex:
+  description: 'Skip automatic unpublishing of assets (by regex)'
+  required: false
+  default: ""
 skip-purge:
   description: 'Skip automatic purge of cached assets in CDN'
   required: false
@@ -73,4 +82,12 @@ endpoint:
   description: 'Specify the QuantCDN API endpoint'
   required: false
   default: 'https://api.quantcdn.io'
+revision-log:
+  description: 'Specify a location for the local revision log file'
+  required: false
+  default: 'false'
+enable-index-html:
+  description: 'Enable index.html creation in Quant (preserves 1.x functionality)'
+  required: false
+  default: false
 ```

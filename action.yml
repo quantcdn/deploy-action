@@ -43,6 +43,14 @@ inputs:
     description: 'Specify the QuantCDN API endpoint'
     required: false
     default: 'https://api.quantcdn.io'
+  revision-log:
+    description: 'Specify a location for the local revision log file'
+    required: false
+    default: 'false'
+  enable-index-html:
+    description: 'Enable index.html creation in Quant (preserves 1.x functionality)'
+    required: false
+    default: false
 runs:
   using: "docker"
   image: "docker://quantcdn/cli:1.12.0"
@@ -60,6 +68,8 @@ runs:
     - --force=${{ inputs.force }}
     - --chunk-size=${{ inputs.chunk-size }}
     - --endpoint=${{ inputs.endpoint }}
+    - --revision-log=${{ inputs.revision-log }}
+    - --enable-index-html=${{ inputs.enable-index-html }}
 branding:
   icon: "upload-cloud"
   color: "blue"
