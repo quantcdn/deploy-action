@@ -85,68 +85,78 @@ runs:
   steps:
     - name: Validate and Deploy Functions
       uses: "docker://quantcdn/cli:5.0.3"
+      env:
+        CUSTOMER: ${{ inputs.customer }}
+        TOKEN: ${{ inputs.token }}
+        PROJECT: ${{ inputs.project }}
+        ENDPOINT: ${{ inputs.endpoint }}
       with:
-        args: |
-          /bin/bash -c '
-          deploy_functions() {
-            local json_input="$1"
-            echo "$json_input" | jq -c ".[]" | while read -r function; do
-              type=$(echo $function | jq -r ".type")
-              path=$(echo $function | jq -r ".path")
-              desc=$(echo $function | jq -r ".description")
-              uuid=$(echo $function | jq -r ".uuid")
-              
-              # Validate required fields
-              if [ -z "$path" ] || [ -z "$desc" ] || [ -z "$uuid" ]; then
-                echo "Error: Each function must have path, description and UUID"
+        entrypoint: /bin/bash
+        args: -c "
+          if [ ! -z '${{ inputs.functions }}' ]; then
+            echo '${{ inputs.functions }}' | jq -c '.[]' | while read -r fn; do
+              type=$(echo $fn | jq -r '.type')
+              path=$(echo $fn | jq -r '.path')
+              desc=$(echo $fn | jq -r '.description')
+              uuid=$(echo $fn | jq -r '.uuid')
+
+              if [ ! -f \"$path\" ]; then
+                echo \"Error: Function file not found: $path\"
                 exit 1
               fi
 
-              # Check if file exists
-              if [ ! -f "$path" ]; then
-                echo "Error: Function file not found: $path"
-                exit 1
-              fi
-              
-              # Validate UUID format - support v4-v7
-              if [[ ! $uuid =~ ^[0-9a-f]{8}-[0-9a-f]{4}-[4-7][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$ ]]; then
-                echo "Error: Invalid UUID format (must be UUID v4-v7): $uuid"
-                exit 1
-              fi
-              
-              # Deploy based on type
               case $type in
-                "auth")
-                  quant auth "$path" "$desc" "$uuid"
+                'auth')
+                  quant auth \"$path\" \"$desc\" \"$uuid\" -c $CUSTOMER -t $TOKEN -p $PROJECT -e $ENDPOINT
                   ;;
-                "filter")
-                  quant filter "$path" "$desc" "$uuid"
+                'filter')
+                  quant filter \"$path\" \"$desc\" \"$uuid\" -c $CUSTOMER -t $TOKEN -p $PROJECT -e $ENDPOINT
                   ;;
-                "edge")
-                  quant function "$path" "$desc" "$uuid"
+                'edge')
+                  quant function \"$path\" \"$desc\" \"$uuid\" -c $CUSTOMER -t $TOKEN -p $PROJECT -e $ENDPOINT
                   ;;
                 *)
-                  echo "Error: Invalid function type: $type"
+                  echo \"Error: Invalid function type: $type\"
                   exit 1
                   ;;
               esac
             done
-          }
-
-          # Deploy from JSON string if provided
-          if [ ! -z "${{ inputs.functions }}" ]; then
-            deploy_functions "${{ inputs.functions }}"
           fi
 
-          # Deploy from JSON file if provided
-          if [ ! -z "${{ inputs.functions-file }}" ]; then
-            if [ ! -f "${{ inputs.functions-file }}" ]; then
-              echo "Error: Functions file not found: ${{ inputs.functions-file }}"
+          if [ ! -z '${{ inputs.functions-file }}' ]; then
+            if [ ! -f '${{ inputs.functions-file }}' ]; then
+              echo 'Error: Functions file not found: ${{ inputs.functions-file }}'
               exit 1
             fi
-            deploy_functions "$(cat ${{ inputs.functions-file }})"
+            cat '${{ inputs.functions-file }}' | jq -c '.[]' | while read -r fn; do
+              type=$(echo $fn | jq -r '.type')
+              path=$(echo $fn | jq -r '.path')
+              desc=$(echo $fn | jq -r '.description')
+              uuid=$(echo $fn | jq -r '.uuid')
+
+              if [ ! -f \"$path\" ]; then
+                echo \"Error: Function file not found: $path\"
+                exit 1
+              fi
+
+              case $type in
+                'auth')
+                  quant auth \"$path\" \"$desc\" \"$uuid\" -c $CUSTOMER -t $TOKEN -p $PROJECT -e $ENDPOINT
+                  ;;
+                'filter')
+                  quant filter \"$path\" \"$desc\" \"$uuid\" -c $CUSTOMER -t $TOKEN -p $PROJECT -e $ENDPOINT
+                  ;;
+                'edge')
+                  quant function \"$path\" \"$desc\" \"$uuid\" -c $CUSTOMER -t $TOKEN -p $PROJECT -e $ENDPOINT
+                  ;;
+                *)
+                  echo \"Error: Invalid function type: $type\"
+                  exit 1
+                  ;;
+              esac
+            done
           fi
-          '
+        "
     - name: Deploy Assets
       uses: "docker://quantcdn/cli:5.0.3"
       with:
