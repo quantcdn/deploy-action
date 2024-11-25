@@ -15,10 +15,6 @@ inputs:
     description: "The directory to deploy"
     required: true
     default: ""
-  attachments:
-    description: "Find attachments"
-    required: false
-    default: false
   skip-unpublish:
     description: "Skip automatic unpublishing of assets"
     required: false
@@ -157,7 +153,6 @@ runs:
           -c ${{ inputs.customer }}
           -t ${{ inputs.token }}
           -p ${{ inputs.project }}
-          -a ${{ inputs.attachments }}
           --skip-unpublish=${{ inputs.skip-unpublish }}
           --skip-unpublish-regex="${{ inputs.skip-unpublish-regex }}"
           --skip-purge=${{ inputs.skip-purge }}
