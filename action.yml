@@ -13,8 +13,7 @@ inputs:
     required: true
   dir:
     description: "The directory to deploy"
-    required: true
-    default: ""
+    required: false
   skip-unpublish:
     description: "Skip automatic unpublishing of assets"
     required: false
@@ -48,117 +47,31 @@ inputs:
     required: false
     default: false
   functions:
-    description: "JSON array of functions to deploy. Each object should contain: type (auth|filter|edge), description, and uuid"
-    required: false
-  functions-file:
     description: "Path to JSON file containing functions configuration"
-    required: false
-  auth-function:
-    description: "Path to auth function file"
-    required: false
-  auth-description:
-    description: "Description for the auth function"
-    required: false
-  auth-uuid:
-    description: "UUID for the auth function"
-    required: false
-  filter-function:
-    description: "Path to filter function file"
-    required: false
-  filter-description:
-    description: "Description for the filter function"
-    required: false
-  filter-uuid:
-    description: "UUID for the filter function"
-    required: false
-  edge-function:
-    description: "Path to edge function file"
-    required: false
-  edge-description:
-    description: "Description for the edge function"
-    required: false
-  edge-uuid:
-    description: "UUID for the edge function"
     required: false
 runs:
   using: "composite"
   steps:
-    - name: Validate and Deploy Functions
-      uses: "docker://quantcdn/cli:5.0.3"
+    - name: Deploy Functions
+      if: inputs.functions != ''
+      uses: "docker://quantcdn/cli:5.1.1"
       env:
         CUSTOMER: ${{ inputs.customer }}
         TOKEN: ${{ inputs.token }}
         PROJECT: ${{ inputs.project }}
         ENDPOINT: ${{ inputs.endpoint }}
       with:
-        entrypoint: /bin/bash
-        args: -c "
-          if [ ! -z '${{ inputs.functions }}' ]; then
-            echo '${{ inputs.functions }}' | jq -c '.[]' | while read -r fn; do
-              type=$(echo $fn | jq -r '.type')
-              path=$(echo $fn | jq -r '.path')
-              desc=$(echo $fn | jq -r '.description')
-              uuid=$(echo $fn | jq -r '.uuid')
+        args: >
+          functions
+          ${{ inputs.functions }}
+          -c ${{ inputs.customer }}
+          -t ${{ inputs.token }}
+          -p ${{ inputs.project }}
+          -e ${{ inputs.endpoint }}
 
-              if [ ! -f \"$path\" ]; then
-                echo \"Error: Function file not found: $path\"
-                exit 1
-              fi
-
-              case $type in
-                'auth')
-                  quant auth \"$path\" \"$desc\" \"$uuid\" -c $CUSTOMER -t $TOKEN -p $PROJECT -e $ENDPOINT
-                  ;;
-                'filter')
-                  quant filter \"$path\" \"$desc\" \"$uuid\" -c $CUSTOMER -t $TOKEN -p $PROJECT -e $ENDPOINT
-                  ;;
-                'edge')
-                  quant function \"$path\" \"$desc\" \"$uuid\" -c $CUSTOMER -t $TOKEN -p $PROJECT -e $ENDPOINT
-                  ;;
-                *)
-                  echo \"Error: Invalid function type: $type\"
-                  exit 1
-                  ;;
-              esac
-            done
-          fi
-
-          if [ ! -z '${{ inputs.functions-file }}' ]; then
-            if [ ! -f '${{ inputs.functions-file }}' ]; then
-              echo 'Error: Functions file not found: ${{ inputs.functions-file }}'
-              exit 1
-            fi
-            cat '${{ inputs.functions-file }}' | jq -c '.[]' | while read -r fn; do
-              type=$(echo $fn | jq -r '.type')
-              path=$(echo $fn | jq -r '.path')
-              desc=$(echo $fn | jq -r '.description')
-              uuid=$(echo $fn | jq -r '.uuid')
-
-              if [ ! -f \"$path\" ]; then
-                echo \"Error: Function file not found: $path\"
-                exit 1
-              fi
-
-              case $type in
-                'auth')
-                  quant auth \"$path\" \"$desc\" \"$uuid\" -c $CUSTOMER -t $TOKEN -p $PROJECT -e $ENDPOINT
-                  ;;
-                'filter')
-                  quant filter \"$path\" \"$desc\" \"$uuid\" -c $CUSTOMER -t $TOKEN -p $PROJECT -e $ENDPOINT
-                  ;;
-                'edge')
-                  quant function \"$path\" \"$desc\" \"$uuid\" -c $CUSTOMER -t $TOKEN -p $PROJECT -e $ENDPOINT
-                  ;;
-                *)
-                  echo \"Error: Invalid function type: $type\"
-                  exit 1
-                  ;;
-              esac
-            done
-          fi
-        "
     - name: Deploy Assets
-      uses: "docker://quantcdn/cli:5.0.3"
+      if: inputs.dir != ''
+      uses: "docker://quantcdn/cli:5.1.1"
       with:
         args: >
           deploy
