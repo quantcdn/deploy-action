@@ -219,7 +219,7 @@ Functions will automatically be deployed to `/fn/{uuid}`.
 
 ## Notes
 
-- This action uses Quant CLI v5.0.0
+- This action uses Quant CLI v5
 - For search functionality, please use the dedicated search action
 - Make sure your `QUANT_TOKEN` is stored securely in your repository secrets
 
