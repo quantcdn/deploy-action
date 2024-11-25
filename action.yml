@@ -91,7 +91,7 @@ runs:
         PROJECT: ${{ inputs.project }}
         ENDPOINT: ${{ inputs.endpoint }}
       with:
-        entrypoint: /bin/bash
+        entrypoint: /bin/sh
         args: >-
           -c '
           if [ ! -z "${{ inputs.functions }}" ]; then
