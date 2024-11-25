@@ -21,7 +21,6 @@ This GitHub Action deploys your static site or assets to QuantCDN using the Quan
 | `project` | Your QuantCDN project name | Yes | - |
 | `token` | Your QuantCDN API token | Yes | - |
 | `dir` | The directory to deploy | Yes | - |
-| `attachments` | Find and process attachments | No | `false` |
 | `skip-unpublish` | Skip automatic unpublishing of assets | No | `false` |
 | `skip-unpublish-regex` | Skip automatic unpublishing of assets matching regex pattern | No | - |
 | `skip-purge` | Skip automatic purge of cached assets in CDN | No | `false` |
@@ -89,7 +88,6 @@ jobs:
           project: your-project-name
           token: ${{ secrets.QUANT_TOKEN }}
           dir: build
-          attachments: true
           skip-unpublish: false
           chunk-size: 20
           force: true
