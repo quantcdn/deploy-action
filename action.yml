@@ -16,60 +16,156 @@ inputs:
     required: true
     default: ""
   attachments:
-    description: 'Find attachments'
+    description: "Find attachments"
     required: false
     default: false
   skip-unpublish:
-    description: 'Skip automatic unpublishing of assets'
+    description: "Skip automatic unpublishing of assets"
     required: false
     default: false
   skip-unpublish-regex:
-    description: 'Skip automatic unpublishing of assets (by regex)'
+    description: "Skip automatic unpublishing of assets (by regex)"
     required: false
     default: ""
   skip-purge:
-    description: 'Skip automatic purge of cached assets in CDN'
+    description: "Skip automatic purge of cached assets in CDN"
     required: false
     default: false
   force:
-    description: 'Force the deployment of assets (skip md5 check)'
+    description: "Force the deployment of assets (skip md5 check)"
     required: false
     default: false
   chunk-size:
-    description: 'Alter the concurrency of deployment'
+    description: "Alter the concurrency of deployment"
     required: false
     default: 10
   endpoint:
-    description: 'Specify the QuantCDN API endpoint'
+    description: "Specify the QuantCDN API endpoint"
     required: false
-    default: 'https://api.quantcdn.io'
+    default: "https://api.quantcdn.io/v1"
   revision-log:
-    description: 'Specify a location for the local revision log file'
+    description: "Specify a location for the local revision log file"
     required: false
-    default: 'false'
+    default: "false"
   enable-index-html:
-    description: 'Enable index.html creation in Quant (preserves 1.x functionality)'
+    description: "Enable index.html creation in Quant"
     required: false
     default: false
+  functions:
+    description: "JSON array of functions to deploy. Each object should contain: type (auth|filter|edge), description, and uuid"
+    required: false
+  functions-file:
+    description: "Path to JSON file containing functions configuration"
+    required: false
+  auth-function:
+    description: "Path to auth function file"
+    required: false
+  auth-description:
+    description: "Description for the auth function"
+    required: false
+  auth-uuid:
+    description: "UUID for the auth function"
+    required: false
+  filter-function:
+    description: "Path to filter function file"
+    required: false
+  filter-description:
+    description: "Description for the filter function"
+    required: false
+  filter-uuid:
+    description: "UUID for the filter function"
+    required: false
+  edge-function:
+    description: "Path to edge function file"
+    required: false
+  edge-description:
+    description: "Description for the edge function"
+    required: false
+  edge-uuid:
+    description: "UUID for the edge function"
+    required: false
 runs:
-  using: "docker"
-  image: "docker://quantcdn/cli:4.0.0"
-  entrypoint: quant
-  args:
-    - deploy
-    - /github/workspace/${{ inputs.dir }}
-    - -c ${{ inputs.customer }}
-    - -t ${{ inputs.token }}
-    - -p ${{ inputs.project }}
-    - -a ${{ inputs.attachments }}
-    - --skip-unpublish=${{ inputs.skip-unpublish }}
-    - --skip-unpublish-regex="${{ inputs.skip-unpublish-regex }}"
-    - --skip-purge=${{ inputs.skip-purge }}
-    - --force=${{ inputs.force }}
-    - --chunk-size=${{ inputs.chunk-size }}
-    - --endpoint=${{ inputs.endpoint }}
-    - --revision-log=${{ inputs.revision-log }}
-    - --enable-index-html=${{ inputs.enable-index-html }}
+  using: "composite"
+  steps:
+    - name: Validate and Deploy Functions
+      shell: bash
+      run: |
+        deploy_functions() {
+          local json_input="$1"
+          echo "$json_input" | jq -c '.[]' | while read -r function; do
+            type=$(echo $function | jq -r '.type')
+            path=$(echo $function | jq -r '.path')
+            desc=$(echo $function | jq -r '.description')
+            uuid=$(echo $function | jq -r '.uuid')
+            
+            # Validate required fields
+            if [ -z "$path" ] || [ -z "$desc" ] || [ -z "$uuid" ]; then
+              echo "Error: Each function must have path, description and UUID"
+              exit 1
+            fi
+
+            # Check if file exists
+            if [ ! -f "$path" ]; then
+              echo "Error: Function file not found: $path"
+              exit 1
+            }
+            
+            # Validate UUID format - support v4-v7
+            if [[ ! $uuid =~ ^[0-9a-f]{8}-[0-9a-f]{4}-[4-7][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$ ]]; then
+              echo "Error: Invalid UUID format (must be UUID v4-v7): $uuid"
+              exit 1
+            fi
+            
+            # Deploy based on type
+            case $type in
+              "auth")
+                quant auth "$path" "$desc" "$uuid"
+                ;;
+              "filter")
+                quant filter "$path" "$desc" "$uuid"
+                ;;
+              "edge")
+                quant function "$path" "$desc" "$uuid"
+                ;;
+              *)
+                echo "Error: Invalid function type: $type"
+                exit 1
+                ;;
+            esac
+          done
+        }
+
+        # Deploy from JSON string if provided
+        if [ ! -z "${{ inputs.functions }}" ]; then
+          deploy_functions '${{ inputs.functions }}'
+        fi
+
+        # Deploy from JSON file if provided
+        if [ ! -z "${{ inputs.functions-file }}" ]; then
+          if [ ! -f "${{ inputs.functions-file }}" ]; then
+            echo "Error: Functions file not found: ${{ inputs.functions-file }}"
+            exit 1
+          fi
+          deploy_functions "$(cat ${{ inputs.functions-file }})"
+        fi
+    - name: Deploy Assets
+      uses: "docker://quantcdn/cli:5.0.0"
+      with:
+        args: >
+          deploy
+          /github/workspace/${{ inputs.dir }}
+          -c ${{ inputs.customer }}
+          -t ${{ inputs.token }}
+          -p ${{ inputs.project }}
+          -a ${{ inputs.attachments }}
+          --skip-unpublish=${{ inputs.skip-unpublish }}
+          --skip-unpublish-regex="${{ inputs.skip-unpublish-regex }}"
+          --skip-purge=${{ inputs.skip-purge }}
+          --force=${{ inputs.force }}
+          --chunk-size=${{ inputs.chunk-size }}
+          --endpoint=${{ inputs.endpoint }}
+          --revision-log=${{ inputs.revision-log }}
+          --enable-index-html=${{ inputs.enable-index-html }}
 branding:
   icon: "upload-cloud"
   color: "blue"
