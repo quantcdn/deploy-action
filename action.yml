@@ -149,7 +149,7 @@ runs:
           deploy_functions "$(cat ${{ inputs.functions-file }})"
         fi
     - name: Deploy Assets
-      uses: "docker://quantcdn/cli:5.0.1"
+      uses: "docker://quantcdn/cli:5.0.2"
       with:
         args: >
           deploy
