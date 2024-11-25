@@ -92,71 +92,71 @@ runs:
         ENDPOINT: ${{ inputs.endpoint }}
       with:
         entrypoint: /bin/bash
-        args: -c "
-          if [ ! -z '${{ inputs.functions }}' ]; then
-            echo '${{ inputs.functions }}' | jq -c '.[]' | while read -r fn; do
-              type=$(echo $fn | jq -r '.type')
-              path=$(echo $fn | jq -r '.path')
-              desc=$(echo $fn | jq -r '.description')
-              uuid=$(echo $fn | jq -r '.uuid')
+        args: >-
+          -c '
+          if [ ! -z "${{ inputs.functions }}" ]; then
+            echo "${{ inputs.functions }}" | jq -c ".[]" | while read -r fn; do
+              type=$(echo $fn | jq -r ".type")
+              path=$(echo $fn | jq -r ".path")
+              desc=$(echo $fn | jq -r ".description")
+              uuid=$(echo $fn | jq -r ".uuid")
 
-              if [ ! -f \"$path\" ]; then
-                echo \"Error: Function file not found: $path\"
+              if [ ! -f "$path" ]; then
+                echo "Error: Function file not found: $path"
                 exit 1
               fi
 
               case $type in
-                'auth')
-                  quant auth \"$path\" \"$desc\" \"$uuid\" -c $CUSTOMER -t $TOKEN -p $PROJECT -e $ENDPOINT
+                "auth")
+                  quant auth "$path" "$desc" "$uuid" -c $CUSTOMER -t $TOKEN -p $PROJECT -e $ENDPOINT
                   ;;
-                'filter')
-                  quant filter \"$path\" \"$desc\" \"$uuid\" -c $CUSTOMER -t $TOKEN -p $PROJECT -e $ENDPOINT
+                "filter")
+                  quant filter "$path" "$desc" "$uuid" -c $CUSTOMER -t $TOKEN -p $PROJECT -e $ENDPOINT
                   ;;
-                'edge')
-                  quant function \"$path\" \"$desc\" \"$uuid\" -c $CUSTOMER -t $TOKEN -p $PROJECT -e $ENDPOINT
+                "edge")
+                  quant function "$path" "$desc" "$uuid" -c $CUSTOMER -t $TOKEN -p $PROJECT -e $ENDPOINT
                   ;;
                 *)
-                  echo \"Error: Invalid function type: $type\"
+                  echo "Error: Invalid function type: $type"
                   exit 1
                   ;;
               esac
             done
           fi
 
-          if [ ! -z '${{ inputs.functions-file }}' ]; then
-            if [ ! -f '${{ inputs.functions-file }}' ]; then
-              echo 'Error: Functions file not found: ${{ inputs.functions-file }}'
+          if [ ! -z "${{ inputs.functions-file }}" ]; then
+            if [ ! -f "${{ inputs.functions-file }}" ]; then
+              echo "Error: Functions file not found: ${{ inputs.functions-file }}"
               exit 1
             fi
-            cat '${{ inputs.functions-file }}' | jq -c '.[]' | while read -r fn; do
-              type=$(echo $fn | jq -r '.type')
-              path=$(echo $fn | jq -r '.path')
-              desc=$(echo $fn | jq -r '.description')
-              uuid=$(echo $fn | jq -r '.uuid')
+            cat "${{ inputs.functions-file }}" | jq -c ".[]" | while read -r fn; do
+              type=$(echo $fn | jq -r ".type")
+              path=$(echo $fn | jq -r ".path")
+              desc=$(echo $fn | jq -r ".description")
+              uuid=$(echo $fn | jq -r ".uuid")
 
-              if [ ! -f \"$path\" ]; then
-                echo \"Error: Function file not found: $path\"
+              if [ ! -f "$path" ]; then
+                echo "Error: Function file not found: $path"
                 exit 1
               fi
 
               case $type in
-                'auth')
-                  quant auth \"$path\" \"$desc\" \"$uuid\" -c $CUSTOMER -t $TOKEN -p $PROJECT -e $ENDPOINT
+                "auth")
+                  quant auth "$path" "$desc" "$uuid" -c $CUSTOMER -t $TOKEN -p $PROJECT -e $ENDPOINT
                   ;;
-                'filter')
-                  quant filter \"$path\" \"$desc\" \"$uuid\" -c $CUSTOMER -t $TOKEN -p $PROJECT -e $ENDPOINT
+                "filter")
+                  quant filter "$path" "$desc" "$uuid" -c $CUSTOMER -t $TOKEN -p $PROJECT -e $ENDPOINT
                   ;;
-                'edge')
-                  quant function \"$path\" \"$desc\" \"$uuid\" -c $CUSTOMER -t $TOKEN -p $PROJECT -e $ENDPOINT
+                "edge")
+                  quant function "$path" "$desc" "$uuid" -c $CUSTOMER -t $TOKEN -p $PROJECT -e $ENDPOINT
                   ;;
                 *)
-                  echo \"Error: Invalid function type: $type\"
+                  echo "Error: Invalid function type: $type"
                   exit 1
                   ;;
               esac
             done
-          fi
-        "
+          fi'
     - name: Deploy Assets
       uses: "docker://quantcdn/cli:5.0.3"
       with:
