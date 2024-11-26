@@ -87,8 +87,8 @@ jobs:
           EOL
           
           # Create an edge function
-          cat > functions/edge.js << 'EOL'
-          export default async function edge(request) {
+          cat > functions/function.js << 'EOL'
+          export default async function handler(request) {
             return new Response("Hello from edge function!");
           }
           EOL
@@ -107,46 +107,22 @@ jobs:
               "path": "./functions/filter.js",
               "description": "Test filter function",
               "uuid": "22222222-2222-4222-a222-222222222222"
+            },
+            {
+              "type": "function",
+              "path": "./functions/function.js",
+              "description": "Test edge function",
+              "uuid": "33333333-3333-4333-a333-333333333333"
             }
           ]
           EOL
 
-      # Test direct JSON configuration
-      - name: Test edge function deployment (direct JSON)
+      # Test function deployment with config file
+      - name: Test function deployment
         uses: ./
         with:
           customer: quant
           project: github-actions
           token: ${{ secrets.QUANT_TOKEN }}
           dir: build
-          functions: |
-            [
-              {
-                "type": "edge",
-                "path": "./functions/edge.js",
-                "description": "Test edge function",
-                "uuid": "33333333-3333-4333-a333-333333333333"
-              }
-            ]
-
-      # Test file-based configuration
-      - name: Test function deployment (config file)
-        uses: ./
-        with:
-          customer: quant
-          project: github-actions
-          token: ${{ secrets.QUANT_TOKEN }}
-          dir: build
-          functions-file: "./functions/config.json"
-
-      # Test individual function deployment
-      - name: Test individual function deployment
-        uses: ./
-        with:
-          customer: quant
-          project: github-actions
-          token: ${{ secrets.QUANT_TOKEN }}
-          dir: build
-          auth-function: "./functions/auth.js"
-          auth-description: "Test individual auth function"
-          auth-uuid: "44444444-4444-4444-a444-444444444444"
+          functions: "./functions/config.json"

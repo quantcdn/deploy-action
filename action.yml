@@ -13,8 +13,7 @@ inputs:
     required: true
   dir:
     description: "The directory to deploy"
-    required: true
-    default: ""
+    required: false
   skip-unpublish:
     description: "Skip automatic unpublishing of assets"
     required: false
@@ -48,128 +47,31 @@ inputs:
     required: false
     default: false
   functions:
-    description: "JSON array of functions to deploy. Each object should contain: type (auth|filter|edge), description, and uuid"
-    required: false
-  functions-file:
     description: "Path to JSON file containing functions configuration"
-    required: false
-  auth-function:
-    description: "Path to auth function file"
-    required: false
-  auth-description:
-    description: "Description for the auth function"
-    required: false
-  auth-uuid:
-    description: "UUID for the auth function"
-    required: false
-  filter-function:
-    description: "Path to filter function file"
-    required: false
-  filter-description:
-    description: "Description for the filter function"
-    required: false
-  filter-uuid:
-    description: "UUID for the filter function"
-    required: false
-  edge-function:
-    description: "Path to edge function file"
-    required: false
-  edge-description:
-    description: "Description for the edge function"
-    required: false
-  edge-uuid:
-    description: "UUID for the edge function"
     required: false
 runs:
   using: "composite"
   steps:
-    - name: Create deploy script
-      shell: sh
-      run: |
-        cat > ${{ github.workspace }}/deploy-functions.sh << 'EOF'
-        #!/bin/sh
-        process_function() {
-          type=$1
-          path=$2
-          desc=$3
-          uuid=$4
-
-          if [ ! -f "$path" ]; then
-            echo "Error: Function file not found: $path"
-            exit 1
-          fi
-
-          case $type in
-            "auth")
-              quant auth "$path" "$desc" "$uuid" -c "$CUSTOMER" -t "$TOKEN" -p "$PROJECT" -e "$ENDPOINT"
-              ;;
-            "filter")
-              quant filter "$path" "$desc" "$uuid" -c "$CUSTOMER" -t "$TOKEN" -p "$PROJECT" -e "$ENDPOINT"
-              ;;
-            "edge")
-              quant function "$path" "$desc" "$uuid" -c "$CUSTOMER" -t "$TOKEN" -p "$PROJECT" -e "$ENDPOINT"
-              ;;
-            *)
-              echo "Error: Invalid function type: $type"
-              exit 1
-              ;;
-          esac
-        }
-
-        if [ ! -z "$FUNCTIONS" ]; then
-          echo "$FUNCTIONS" | jq -r '.[] | [.type, .path, .description, .uuid] | @tsv' | while IFS=$'\t' read -r type path desc uuid; do
-            process_function "$type" "$path" "$desc" "$uuid"
-          done
-        fi
-
-        if [ ! -z "$FUNCTIONS_FILE" ]; then
-          if [ ! -f "$FUNCTIONS_FILE" ]; then
-            echo "Error: Functions file not found: $FUNCTIONS_FILE"
-            exit 1
-          fi
-          cat "$FUNCTIONS_FILE" | jq -r '.[] | [.type, .path, .description, .uuid] | @tsv' | while IFS=$'\t' read -r type path desc uuid; do
-            process_function "$type" "$path" "$desc" "$uuid"
-          done
-        fi
-
-        if [ ! -z "$AUTH_FUNCTION" ]; then
-          process_function "auth" "$AUTH_FUNCTION" "$AUTH_DESC" "$AUTH_UUID"
-        fi
-
-        if [ ! -z "$FILTER_FUNCTION" ]; then
-          process_function "filter" "$FILTER_FUNCTION" "$FILTER_DESC" "$FILTER_UUID"
-        fi
-
-        if [ ! -z "$EDGE_FUNCTION" ]; then
-          process_function "edge" "$EDGE_FUNCTION" "$EDGE_DESC" "$EDGE_UUID"
-        fi
-        EOF
-        chmod +x ${{ github.workspace }}/deploy-functions.sh
-
-    - name: Validate and Deploy Functions
-      uses: "docker://quantcdn/cli:5.0.3"
+    - name: Deploy Functions
+      if: inputs.functions != ''
+      uses: "docker://quantcdn/cli:5.1.0"
       env:
         CUSTOMER: ${{ inputs.customer }}
         TOKEN: ${{ inputs.token }}
         PROJECT: ${{ inputs.project }}
         ENDPOINT: ${{ inputs.endpoint }}
-        FUNCTIONS: ${{ inputs.functions }}
-        FUNCTIONS_FILE: ${{ inputs.functions-file }}
-        AUTH_FUNCTION: ${{ inputs.auth-function }}
-        AUTH_DESC: ${{ inputs.auth-description }}
-        AUTH_UUID: ${{ inputs.auth-uuid }}
-        FILTER_FUNCTION: ${{ inputs.filter-function }}
-        FILTER_DESC: ${{ inputs.filter-description }}
-        FILTER_UUID: ${{ inputs.filter-uuid }}
-        EDGE_FUNCTION: ${{ inputs.edge-function }}
-        EDGE_DESC: ${{ inputs.edge-description }}
-        EDGE_UUID: ${{ inputs.edge-uuid }}
       with:
-        entrypoint: sh
-        args: /github/workspace/deploy-functions.sh
+        args: >
+          functions
+          ${{ inputs.functions }}
+          -c ${{ inputs.customer }}
+          -t ${{ inputs.token }}
+          -p ${{ inputs.project }}
+          -e ${{ inputs.endpoint }}
 
     - name: Deploy Assets
-      uses: "docker://quantcdn/cli:5.0.3"
+      if: inputs.dir != ''
+      uses: "docker://quantcdn/cli:5.1.0"
       with:
         args: >
           deploy
