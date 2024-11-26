@@ -83,6 +83,69 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Create deploy script
+      shell: sh
+      run: |
+        cat > /tmp/deploy-functions.sh << 'EOF'
+        #!/bin/sh
+        process_function() {
+          type=$1
+          path=$2
+          desc=$3
+          uuid=$4
+
+          if [ ! -f "$path" ]; then
+            echo "Error: Function file not found: $path"
+            exit 1
+          fi
+
+          case $type in
+            "auth")
+              quant auth "$path" "$desc" "$uuid" -c "$CUSTOMER" -t "$TOKEN" -p "$PROJECT" -e "$ENDPOINT"
+              ;;
+            "filter")
+              quant filter "$path" "$desc" "$uuid" -c "$CUSTOMER" -t "$TOKEN" -p "$PROJECT" -e "$ENDPOINT"
+              ;;
+            "edge")
+              quant function "$path" "$desc" "$uuid" -c "$CUSTOMER" -t "$TOKEN" -p "$PROJECT" -e "$ENDPOINT"
+              ;;
+            *)
+              echo "Error: Invalid function type: $type"
+              exit 1
+              ;;
+          esac
+        }
+
+        if [ ! -z "$FUNCTIONS" ]; then
+          echo "$FUNCTIONS" | jq -r '.[] | [.type, .path, .description, .uuid] | @tsv' | while IFS=$'\t' read -r type path desc uuid; do
+            process_function "$type" "$path" "$desc" "$uuid"
+          done
+        fi
+
+        if [ ! -z "$FUNCTIONS_FILE" ]; then
+          if [ ! -f "$FUNCTIONS_FILE" ]; then
+            echo "Error: Functions file not found: $FUNCTIONS_FILE"
+            exit 1
+          fi
+          cat "$FUNCTIONS_FILE" | jq -r '.[] | [.type, .path, .description, .uuid] | @tsv' | while IFS=$'\t' read -r type path desc uuid; do
+            process_function "$type" "$path" "$desc" "$uuid"
+          done
+        fi
+
+        if [ ! -z "$AUTH_FUNCTION" ]; then
+          process_function "auth" "$AUTH_FUNCTION" "$AUTH_DESC" "$AUTH_UUID"
+        fi
+
+        if [ ! -z "$FILTER_FUNCTION" ]; then
+          process_function "filter" "$FILTER_FUNCTION" "$FILTER_DESC" "$FILTER_UUID"
+        fi
+
+        if [ ! -z "$EDGE_FUNCTION" ]; then
+          process_function "edge" "$EDGE_FUNCTION" "$EDGE_DESC" "$EDGE_UUID"
+        fi
+        EOF
+        chmod +x /tmp/deploy-functions.sh
+
     - name: Validate and Deploy Functions
       uses: "docker://quantcdn/cli:5.0.3"
       env:
@@ -90,66 +153,21 @@ runs:
         TOKEN: ${{ inputs.token }}
         PROJECT: ${{ inputs.project }}
         ENDPOINT: ${{ inputs.endpoint }}
+        FUNCTIONS: ${{ inputs.functions }}
+        FUNCTIONS_FILE: ${{ inputs.functions-file }}
+        AUTH_FUNCTION: ${{ inputs.auth-function }}
+        AUTH_DESC: ${{ inputs.auth-description }}
+        AUTH_UUID: ${{ inputs.auth-uuid }}
+        FILTER_FUNCTION: ${{ inputs.filter-function }}
+        FILTER_DESC: ${{ inputs.filter-description }}
+        FILTER_UUID: ${{ inputs.filter-uuid }}
+        EDGE_FUNCTION: ${{ inputs.edge-function }}
+        EDGE_DESC: ${{ inputs.edge-description }}
+        EDGE_UUID: ${{ inputs.edge-uuid }}
       with:
         entrypoint: sh
-        args: >-
-          -c '
-          process_function() {
-            type=$1
-            path=$2
-            desc=$3
-            uuid=$4
+        args: /tmp/deploy-functions.sh
 
-            if [ ! -f "$path" ]; then
-              echo "Error: Function file not found: $path"
-              exit 1
-            fi
-
-            case $type in
-              "auth")
-                quant auth "$path" "$desc" "$uuid" -c "$CUSTOMER" -t "$TOKEN" -p "$PROJECT" -e "$ENDPOINT"
-                ;;
-              "filter")
-                quant filter "$path" "$desc" "$uuid" -c "$CUSTOMER" -t "$TOKEN" -p "$PROJECT" -e "$ENDPOINT"
-                ;;
-              "edge")
-                quant function "$path" "$desc" "$uuid" -c "$CUSTOMER" -t "$TOKEN" -p "$PROJECT" -e "$ENDPOINT"
-                ;;
-              *)
-                echo "Error: Invalid function type: $type"
-                exit 1
-                ;;
-            esac
-          }
-
-          if [ ! -z "${{ inputs.functions }}" ]; then
-            echo "${{ inputs.functions }}" | jq -r ".[] | [.type, .path, .description, .uuid] | @tsv" | while IFS=$"\t" read -r type path desc uuid; do
-              process_function "$type" "$path" "$desc" "$uuid"
-            done
-          fi
-
-          if [ ! -z "${{ inputs.functions-file }}" ]; then
-            if [ ! -f "${{ inputs.functions-file }}" ]; then
-              echo "Error: Functions file not found: ${{ inputs.functions-file }}"
-              exit 1
-            fi
-            cat "${{ inputs.functions-file }}" | jq -r ".[] | [.type, .path, .description, .uuid] | @tsv" | while IFS=$"\t" read -r type path desc uuid; do
-              process_function "$type" "$path" "$desc" "$uuid"
-            done
-          fi
-
-          if [ ! -z "${{ inputs.auth-function }}" ]; then
-            process_function "auth" "${{ inputs.auth-function }}" "${{ inputs.auth-description }}" "${{ inputs.auth-uuid }}"
-          fi
-
-          if [ ! -z "${{ inputs.filter-function }}" ]; then
-            process_function "filter" "${{ inputs.filter-function }}" "${{ inputs.filter-description }}" "${{ inputs.filter-uuid }}"
-          fi
-
-          if [ ! -z "${{ inputs.edge-function }}" ]; then
-            process_function "edge" "${{ inputs.edge-function }}" "${{ inputs.edge-description }}" "${{ inputs.edge-uuid }}"
-          fi
-          '
     - name: Deploy Assets
       uses: "docker://quantcdn/cli:5.0.3"
       with:
