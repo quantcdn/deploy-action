@@ -70,7 +70,9 @@ jobs:
       # Create test functions
       - name: Prepare test functions
         run: |
+          # Create directories
           mkdir -p functions
+          mkdir -p build
           
           # Create an auth function
           cat > functions/auth.js << 'EOL'
@@ -116,6 +118,9 @@ jobs:
             }
           ]
           EOL
+
+          # Create a dummy file in build directory
+          echo "dummy file" > build/index.html
 
       # Test function deployment with config file
       - name: Test function deployment
