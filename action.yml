@@ -54,7 +54,7 @@ runs:
   steps:
     - name: Deploy Functions
       if: inputs.functions != ''
-      uses: "docker://quantcdn/cli:5.1.0"
+      uses: "docker://quantcdn/cli:5.1.1"
       env:
         CUSTOMER: ${{ inputs.customer }}
         TOKEN: ${{ inputs.token }}
@@ -71,7 +71,7 @@ runs:
 
     - name: Deploy Assets
       if: inputs.dir != ''
-      uses: "docker://quantcdn/cli:5.1.0"
+      uses: "docker://quantcdn/cli:5.1.1"
       with:
         args: >
           deploy
