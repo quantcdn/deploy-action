@@ -86,7 +86,7 @@ runs:
     - name: Create deploy script
       shell: sh
       run: |
-        cat > /tmp/deploy-functions.sh << 'EOF'
+        cat > ${{ github.workspace }}/deploy-functions.sh << 'EOF'
         #!/bin/sh
         process_function() {
           type=$1
@@ -144,7 +144,7 @@ runs:
           process_function "edge" "$EDGE_FUNCTION" "$EDGE_DESC" "$EDGE_UUID"
         fi
         EOF
-        chmod +x /tmp/deploy-functions.sh
+        chmod +x ${{ github.workspace }}/deploy-functions.sh
 
     - name: Validate and Deploy Functions
       uses: "docker://quantcdn/cli:5.0.3"
@@ -166,7 +166,7 @@ runs:
         EDGE_UUID: ${{ inputs.edge-uuid }}
       with:
         entrypoint: sh
-        args: /tmp/deploy-functions.sh
+        args: /github/workspace/deploy-functions.sh
 
     - name: Deploy Assets
       uses: "docker://quantcdn/cli:5.0.3"
