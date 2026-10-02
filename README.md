@@ -158,3 +158,25 @@ jobs:
 ## License
 
 MIT License
+
+
+### Declarative edge rules (CLI 6.3.0 / next action release)
+
+Provide `rules: edge-rules.json`, `functions: edge-functions.json`,
+`api-token: ${{ secrets.QUANT_API_TOKEN }}` and
+`api-base-url: ${{ vars.QUANT_BASE_URL }}` alongside the normal deployment inputs.
+The portal injects the project-scoped API secret and the environment-specific
+portal `/api/v2` URL when a static/Studio template includes `edge-rules.json`.
+Rules access is validated before uploads; rules are applied after functions and
+assets are uploaded. Uploads continue to use the separate `token` input.
+Never substitute the content write token for `api-token`.
+
+Rules deployed this way are managed in code and are read-only in the dashboard.
+If one was changed outside code anyway, the access check fails before any upload
+and the log lists the changed fields. Set `rules-force: true` for one run to
+overwrite those rules with the manifest; it never takes over a rule the manifest
+did not create.
+
+This change requires the new portal rules endpoint and CLI 6.3.0 Docker image
+before releasing the action. Existing template workflows should remain pinned
+to their current action until that release is available.
