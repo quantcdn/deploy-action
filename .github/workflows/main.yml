@@ -131,3 +131,32 @@ jobs:
           token: ${{ secrets.QUANT_TOKEN }}
           dir: build
           functions: "./functions/config.json"
+
+  test-rules-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Valid rules inputs are accepted
+        env:
+          RULES: edge-rules.json
+          FUNCTIONS: .quant-functions.json
+          CUSTOMER: quant
+          PROJECT: github-actions
+          RULES_FORCE: "false"
+          API_TOKEN: dummy
+          API_BASE_URL: https://dashboard.quantcdn.io/api/v2
+        run: ./scripts/validate-rules-inputs.sh
+
+      - name: Inputs that would become extra CLI flags are refused
+        run: |
+          base=(RULES=edge-rules.json FUNCTIONS=.quant-functions.json CUSTOMER=quant PROJECT=github-actions RULES_FORCE=false API_TOKEN=dummy API_BASE_URL=https://dashboard.quantcdn.io/api/v2)
+          for bad in "RULES=r.json --api-base-url=https://attacker.example/api/v2" "RULES=--api-token=x" 'RULES=r.json"x' \
+                     "FUNCTIONS=f.json -c other" "CUSTOMER=quant --api-base-url=x" "PROJECT=-p" "RULES_FORCE=yes" \
+                     "API_TOKEN=" "API_BASE_URL="; do
+            if env "${base[@]}" "$bad" ./scripts/validate-rules-inputs.sh >/dev/null 2>&1; then
+              echo "::error::accepted unsafe input: $bad"; exit 1
+            fi
+          done
+          echo "All unsafe inputs refused."
+
