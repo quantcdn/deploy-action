@@ -2,6 +2,9 @@
 
 name: CI
 
+permissions:
+  contents: read
+
 # Controls when the action will run.
 on:
   # Triggers the workflow on push or pull request events but only for the main branch
@@ -23,7 +26,7 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
       - name: Prepare a test file
         run: |
@@ -42,7 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
       - name: Prepare a test file
         run: |
@@ -65,7 +68,7 @@ jobs:
   test-functions:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
       # Create test functions
       - name: Prepare test functions
@@ -131,3 +134,32 @@ jobs:
           token: ${{ secrets.QUANT_TOKEN }}
           dir: build
           functions: "./functions/config.json"
+
+  test-rules-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+
+      - name: Valid rules inputs are accepted
+        env:
+          RULES: edge-rules.json
+          FUNCTIONS: .quant-functions.json
+          CUSTOMER: quant
+          PROJECT: github-actions
+          RULES_FORCE: "false"
+          API_TOKEN: dummy
+          API_BASE_URL: https://dashboard.quantcdn.io/api/v2
+        run: ./scripts/validate-rules-inputs.sh
+
+      - name: Inputs that would become extra CLI flags are refused
+        run: |
+          base=(RULES=edge-rules.json FUNCTIONS=.quant-functions.json CUSTOMER=quant PROJECT=github-actions RULES_FORCE=false API_TOKEN=dummy API_BASE_URL=https://dashboard.quantcdn.io/api/v2)
+          for bad in "RULES=r.json --api-base-url=https://attacker.example/api/v2" "RULES=--api-token=x" 'RULES=r.json"x' \
+                     "FUNCTIONS=f.json -c other" "CUSTOMER=quant --api-base-url=x" "PROJECT=-p" "RULES_FORCE=yes" \
+                     "API_TOKEN=" "API_BASE_URL="; do
+            if env "${base[@]}" "$bad" ./scripts/validate-rules-inputs.sh >/dev/null 2>&1; then
+              echo "::error::accepted unsafe input: $bad"; exit 1
+            fi
+          done
+          echo "All unsafe inputs refused."
+

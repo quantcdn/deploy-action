@@ -9,7 +9,7 @@ inputs:
     description: "Your project name"
     required: true
   token:
-    description: "Your API token"
+    description: "Your content write token (uploads only; never used for rules)"
     required: true
   dir:
     description: "The directory to deploy"
@@ -49,12 +49,54 @@ inputs:
   functions:
     description: "Path to JSON file containing functions configuration"
     required: false
+  rules:
+    description: "Path to an edge rules JSON manifest"
+    required: false
+  api-token:
+    description: "Project-scoped portal API token for rules (QUANT_API_TOKEN)"
+    required: false
+  api-base-url:
+    description: "Portal API base URL, including /api/v2 (QUANT_BASE_URL)"
+    required: false
+  rules-force:
+    description: "Overwrite managed rules changed outside code (never takes over another rule)"
+    required: false
+    default: "false"
 runs:
   using: "composite"
   steps:
+    - name: Validate Rules Inputs
+      if: inputs.rules != ''
+      shell: bash
+      env:
+        RULES: ${{ inputs.rules }}
+        FUNCTIONS: ${{ inputs.functions }}
+        CUSTOMER: ${{ inputs.customer }}
+        PROJECT: ${{ inputs.project }}
+        RULES_FORCE: ${{ inputs.rules-force }}
+        API_TOKEN: ${{ inputs.api-token }}
+        API_BASE_URL: ${{ inputs.api-base-url }}
+      run: '"$GITHUB_ACTION_PATH/scripts/validate-rules-inputs.sh"'
+
+    - name: Validate Rules Access
+      if: inputs.rules != ''
+      uses: "docker://quantcdn/cli:6.3.0@sha256:cc5025e8749068b3a445331430d461be9467ce0f811838fdba9710dd388d4054"
+      env:
+        QUANT_API_TOKEN: ${{ inputs.api-token }}
+        QUANT_BASE_URL: ${{ inputs.api-base-url }}
+      with:
+        args: >
+          rules
+          "${{ inputs.rules }}"
+          --functions="${{ inputs.functions }}"
+          -c "${{ inputs.customer }}"
+          -p "${{ inputs.project }}"
+          --force=${{ inputs.rules-force }}
+          --dry-run
+
     - name: Deploy Functions
       if: inputs.functions != ''
-      uses: "docker://quantcdn/cli:6.1.0"
+      uses: "docker://quantcdn/cli:6.3.0@sha256:cc5025e8749068b3a445331430d461be9467ce0f811838fdba9710dd388d4054"
       env:
         CUSTOMER: ${{ inputs.customer }}
         TOKEN: ${{ inputs.token }}
@@ -71,7 +113,7 @@ runs:
 
     - name: Deploy Assets
       if: inputs.dir != ''
-      uses: "docker://quantcdn/cli:6.1.0"
+      uses: "docker://quantcdn/cli:6.3.0@sha256:cc5025e8749068b3a445331430d461be9467ce0f811838fdba9710dd388d4054"
       with:
         args: >
           deploy
@@ -87,6 +129,22 @@ runs:
           --endpoint=${{ inputs.endpoint }}
           --revision-log=${{ inputs.revision-log }}
           --enable-index-html=${{ inputs.enable-index-html }}
+
+    - name: Deploy Rules
+      if: inputs.rules != ''
+      uses: "docker://quantcdn/cli:6.3.0@sha256:cc5025e8749068b3a445331430d461be9467ce0f811838fdba9710dd388d4054"
+      env:
+        QUANT_API_TOKEN: ${{ inputs.api-token }}
+        QUANT_BASE_URL: ${{ inputs.api-base-url }}
+      with:
+        args: >
+          rules
+          "${{ inputs.rules }}"
+          --functions="${{ inputs.functions }}"
+          -c "${{ inputs.customer }}"
+          -p "${{ inputs.project }}"
+          --force=${{ inputs.rules-force }}
+
 branding:
   icon: "upload-cloud"
   color: "blue"
