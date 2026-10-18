@@ -162,7 +162,7 @@ jobs:
 
 ## Notes
 
-- This action uses Quant CLI v7 (`quantcdn/cli:7.0.0@sha256:e9562fac…`, pinned by digest)
+- This action uses Quant CLI v7 (`quantcdn/cli:7.0.1@sha256:d85c0969…`, pinned by digest)
 - For search functionality, please use the dedicated search action
 - Make sure your `QUANT_TOKEN` is stored securely in your repository secrets
 
@@ -202,7 +202,7 @@ MIT License
 
 ## Upgrading from v6 to v7
 
-v7 runs Quant CLI 7.0.0. The only breaking change is for edge functions:
+v7 runs Quant CLI 7 (7.0.1 from deploy-action v7.0.1). The only breaking change is for edge functions:
 
 - Every entry in the `functions` manifest needs an explicit `uuid`. v6 derived
   one from `id` when it was missing. v7 fails the "Deploy Functions" step (or the
