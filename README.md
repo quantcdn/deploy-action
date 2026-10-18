@@ -1,12 +1,12 @@
 # Deploy to QuantCDN Action
 
-This GitHub Action deploys your static site and/or functions to QuantCDN using the Quant CLI v6.
+This GitHub Action deploys your static site and/or functions to QuantCDN using the Quant CLI v7.
 
 ## Usage
 
 ### Deploy Assets
 ```yaml
-- uses: quantcdn/action-deploy@v6
+- uses: quantcdn/deploy-action@v7
   with:
     customer: your-customer-id
     project: your-project-name
@@ -16,12 +16,12 @@ This GitHub Action deploys your static site and/or functions to QuantCDN using t
 
 ### Deploy Functions
 ```yaml
-- uses: quantcdn/action-deploy@v6
+- uses: quantcdn/deploy-action@v7
   with:
     customer: your-customer-id
     project: your-project-name
     token: ${{ secrets.QUANT_TOKEN }}
-    functions: './functions.json'
+    functions: quant/edge-functions.json
 ```
 
 ## Inputs
@@ -68,7 +68,7 @@ jobs:
           npm run build
           
       - name: Deploy to QuantCDN
-        uses: quantcdn/action-deploy@v6
+        uses: quantcdn/deploy-action@v7
         with:
           customer: your-customer-id
           project: your-project-name
@@ -78,29 +78,36 @@ jobs:
 
 ### Functions Deployment
 
-Create a functions configuration file (e.g., `functions.json`):
+Declare your functions in `quant/edge-functions.json`. Every entry needs a
+`uuid`: it is the function's identity, so keep it in the repository and never
+change it. Create entries with `quant functions-add`, which writes a new UUID:
+
+```sh
+npx @quantcdn/quant-cli@7 functions-add quant/edge-functions.json quant/edge-functions/api.js --description "API" --id my-api
+```
+
 ```json
 [
   {
     "type": "auth",
-    "path": "./functions/auth.js",
+    "path": "quant/edge-functions/auth.js",
     "description": "Authentication function",
+    "id": "gate",
     "uuid": "11111111-1111-4111-a111-111111111111"
   },
   {
-    "type": "filter",
-    "path": "./functions/filter.js",
-    "description": "Filter function",
-    "uuid": "22222222-2222-4222-a222-222222222222"
-  },
-  {
     "type": "function",
-    "path": "./functions/function.js",
+    "path": "quant/edge-functions/api.js",
     "description": "Edge function",
+    "id": "my-api",
     "uuid": "33333333-3333-4333-a333-333333333333"
   }
 ]
 ```
+
+`type` is `function`, `edge`, `auth` or `filter`; `id` is optional (a lowercase
+slug that rules use as `function_ref`). The whole manifest is checked before the
+first upload, and a manifest entry without a `uuid` fails the step.
 
 Then deploy using:
 ```yaml
@@ -116,12 +123,12 @@ jobs:
       - uses: actions/checkout@v6
       
       - name: Deploy Functions
-        uses: quantcdn/action-deploy@v6
+        uses: quantcdn/deploy-action@v7
         with:
           customer: your-customer-id
           project: your-project-name
           token: ${{ secrets.QUANT_TOKEN }}
-          functions: './functions.json'
+          functions: quant/edge-functions.json
 ```
 
 ### Combined Deployment
@@ -144,28 +151,28 @@ jobs:
           npm run build
           
       - name: Deploy to QuantCDN
-        uses: quantcdn/action-deploy@v6
+        uses: quantcdn/deploy-action@v7
         with:
           customer: your-customer-id
           project: your-project-name
           token: ${{ secrets.QUANT_TOKEN }}
           dir: build
-          functions: './functions.json'
+          functions: quant/edge-functions.json
 ```
 
 ## Notes
 
-- This action uses Quant CLI v6
+- This action uses Quant CLI v7 (`quantcdn/cli:7.0.0@sha256:e9562fac…`, pinned by digest)
 - For search functionality, please use the dedicated search action
 - Make sure your `QUANT_TOKEN` is stored securely in your repository secrets
 
 ## Edge rules
 
-Provide `rules: edge-rules.json`, `functions: edge-functions.json`,
+Provide `rules: quant/edge-rules.json`, `functions: quant/edge-functions.json`,
 `api-token: ${{ secrets.QUANT_API_TOKEN }}` and
 `api-base-url: ${{ vars.QUANT_BASE_URL }}` alongside the normal deployment inputs.
 The Quant portal injects the project-scoped API secret and the environment-specific
-portal `/api/v2` URL when a static or Studio template includes `edge-rules.json`.
+portal `/api/v2` URL when a static or Studio template includes `quant/edge-rules.json`.
 Uploads continue to use the separate `token` input. Never substitute the content
 write token for `api-token`.
 
@@ -192,3 +199,18 @@ idempotent, so the rules step converges and unchanged assets are skipped.
 ## License
 
 MIT License
+
+## Upgrading from v6 to v7
+
+v7 runs Quant CLI 7.0.0. The only breaking change is for edge functions:
+
+- Every entry in the `functions` manifest needs an explicit `uuid`. v6 derived
+  one from `id` when it was missing. v7 fails the "Deploy Functions" step (or the
+  rules dry run, when `rules` is set) before anything is uploaded, and names each
+  entry. To keep a function v6 deployed by `id`, copy its UUID from the dashboard
+  (Compute > Edge Functions) into the entry, or see the Quant CLI README for a
+  command that prints the UUID v6 derived.
+- The manifest is checked against the full schema (lowercase `type`, non-blank
+  `description`, unique `uuid` and `id`).
+
+`@v6` is not changed and keeps CLI 6.3.0.

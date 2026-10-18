@@ -135,6 +135,34 @@ jobs:
           dir: build
           functions: "./functions/config.json"
 
+  # CLI 7: a manifest entry without a uuid is refused before anything is uploaded.
+  test-functions-require-uuid:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+
+      - name: Prepare a manifest without a uuid
+        run: |
+          mkdir -p quant/edge-functions
+          echo 'return new Response("x");' > quant/edge-functions/api.js
+          echo '[{"type":"function","path":"quant/edge-functions/api.js","description":"No uuid"}]' > quant/edge-functions.json
+
+      - name: Deploy must fail before upload
+        id: deploy
+        continue-on-error: true
+        uses: ./
+        with:
+          customer: quant
+          project: github-actions
+          token: ${{ secrets.QUANT_TOKEN }}
+          functions: quant/edge-functions.json
+
+      - name: The deploy step failed
+        if: steps.deploy.outcome != 'failure'
+        run: |
+          echo "::error::a manifest entry without a uuid was accepted"
+          exit 1
+
   test-rules-guard:
     runs-on: ubuntu-latest
     steps:
