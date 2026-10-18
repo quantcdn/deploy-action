@@ -162,7 +162,7 @@ jobs:
 
 ## Notes
 
-- This action uses Quant CLI v7 (`quantcdn/cli:7.0.0`, pinned by digest)
+- This action uses Quant CLI v7 (`quantcdn/cli:7.0.0@sha256:e9562fac…`, pinned by digest)
 - For search functionality, please use the dedicated search action
 - Make sure your `QUANT_TOKEN` is stored securely in your repository secrets
 

@@ -80,7 +80,7 @@ runs:
 
     - name: Validate Rules Access
       if: inputs.rules != ''
-      uses: "docker://quantcdn/cli:6.3.0@sha256:cc5025e8749068b3a445331430d461be9467ce0f811838fdba9710dd388d4054"
+      uses: "docker://quantcdn/cli:7.0.0@sha256:e9562fac5914c7a8cef3fc4f3ad88004fd125500d8643577dd81cd20e7ee2e33"
       env:
         QUANT_API_TOKEN: ${{ inputs.api-token }}
         QUANT_BASE_URL: ${{ inputs.api-base-url }}
@@ -96,7 +96,7 @@ runs:
 
     - name: Deploy Functions
       if: inputs.functions != ''
-      uses: "docker://quantcdn/cli:6.3.0@sha256:cc5025e8749068b3a445331430d461be9467ce0f811838fdba9710dd388d4054"
+      uses: "docker://quantcdn/cli:7.0.0@sha256:e9562fac5914c7a8cef3fc4f3ad88004fd125500d8643577dd81cd20e7ee2e33"
       env:
         CUSTOMER: ${{ inputs.customer }}
         TOKEN: ${{ inputs.token }}
@@ -113,7 +113,7 @@ runs:
 
     - name: Deploy Assets
       if: inputs.dir != ''
-      uses: "docker://quantcdn/cli:6.3.0@sha256:cc5025e8749068b3a445331430d461be9467ce0f811838fdba9710dd388d4054"
+      uses: "docker://quantcdn/cli:7.0.0@sha256:e9562fac5914c7a8cef3fc4f3ad88004fd125500d8643577dd81cd20e7ee2e33"
       with:
         args: >
           deploy
@@ -132,7 +132,7 @@ runs:
 
     - name: Deploy Rules
       if: inputs.rules != ''
-      uses: "docker://quantcdn/cli:6.3.0@sha256:cc5025e8749068b3a445331430d461be9467ce0f811838fdba9710dd388d4054"
+      uses: "docker://quantcdn/cli:7.0.0@sha256:e9562fac5914c7a8cef3fc4f3ad88004fd125500d8643577dd81cd20e7ee2e33"
       env:
         QUANT_API_TOKEN: ${{ inputs.api-token }}
         QUANT_BASE_URL: ${{ inputs.api-base-url }}
