@@ -6,7 +6,7 @@ This GitHub Action deploys your static site and/or functions to QuantCDN using t
 
 ### Deploy Assets
 ```yaml
-- uses: quantcdn/action-deploy@v7
+- uses: quantcdn/deploy-action@v7
   with:
     customer: your-customer-id
     project: your-project-name
@@ -16,7 +16,7 @@ This GitHub Action deploys your static site and/or functions to QuantCDN using t
 
 ### Deploy Functions
 ```yaml
-- uses: quantcdn/action-deploy@v7
+- uses: quantcdn/deploy-action@v7
   with:
     customer: your-customer-id
     project: your-project-name
@@ -68,7 +68,7 @@ jobs:
           npm run build
           
       - name: Deploy to QuantCDN
-        uses: quantcdn/action-deploy@v7
+        uses: quantcdn/deploy-action@v7
         with:
           customer: your-customer-id
           project: your-project-name
@@ -123,7 +123,7 @@ jobs:
       - uses: actions/checkout@v6
       
       - name: Deploy Functions
-        uses: quantcdn/action-deploy@v7
+        uses: quantcdn/deploy-action@v7
         with:
           customer: your-customer-id
           project: your-project-name
@@ -151,7 +151,7 @@ jobs:
           npm run build
           
       - name: Deploy to QuantCDN
-        uses: quantcdn/action-deploy@v7
+        uses: quantcdn/deploy-action@v7
         with:
           customer: your-customer-id
           project: your-project-name
