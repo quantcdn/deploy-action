@@ -191,3 +191,28 @@ jobs:
           done
           echo "All unsafe inputs refused."
 
+
+  test-kv-indexes-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+
+      - name: Valid kv-indexes inputs are accepted
+        env:
+          KV_INDEXES: quant/meta.json
+          CUSTOMER: quant
+          PROJECT: github-actions
+          API_TOKEN: dummy
+          API_BASE_URL: https://dashboard.quantcdn.io/api/v2
+        run: ./scripts/validate-kv-indexes-inputs.sh
+
+      - name: Inputs that would become extra CLI flags are refused
+        run: |
+          base=(KV_INDEXES=quant/meta.json CUSTOMER=quant PROJECT=github-actions API_TOKEN=dummy API_BASE_URL=https://dashboard.quantcdn.io/api/v2)
+          for bad in "KV_INDEXES=meta.json --api-base-url=https://attacker.example/api/v2" "KV_INDEXES=--dry-run" 'KV_INDEXES=m.json"x' \
+                     "KV_INDEXES=" "CUSTOMER=quant --api-token=x" "PROJECT=-p" "API_TOKEN=" "API_BASE_URL="; do
+            if env "${base[@]}" "$bad" ./scripts/validate-kv-indexes-inputs.sh >/dev/null 2>&1; then
+              echo "::error::accepted unsafe input: $bad"; exit 1
+            fi
+          done
+          echo "All unsafe inputs refused."
