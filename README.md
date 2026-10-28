@@ -42,9 +42,10 @@ This GitHub Action deploys your static site and/or functions to QuantCDN using t
 | `revision-log` | Specify a location for the local revision log file | No | `false` |
 | `enable-index-html` | Enable index.html creation in Quant | No | `false` |
 | `rules` | Path to an edge rules manifest (`edge-rules.json`) | No | - |
-| `api-token` | Project-scoped portal API token for rules (`QUANT_API_TOKEN`); required with `rules` | No | - |
-| `api-base-url` | Portal API base URL including `/api/v2` (`QUANT_BASE_URL`); required with `rules` | No | - |
+| `api-token` | Project-scoped portal API token (`QUANT_API_TOKEN`); required with `rules` or `kv-indexes` | No | - |
+| `api-base-url` | Portal API base URL including `/api/v2` (`QUANT_BASE_URL`); required with `rules` or `kv-indexes` | No | - |
 | `rules-force` | Overwrite managed rules changed outside code (never takes over another rule) | No | `false` |
+| `kv-indexes` | Path to `quant/meta.json`; declares its KV indexes with `api-token` and `api-base-url` | No | - |
 
 ## Example Workflows
 
@@ -162,7 +163,7 @@ jobs:
 
 ## Notes
 
-- This action uses Quant CLI v7 (`quantcdn/cli:7.0.1@sha256:d85c0969…`, pinned by digest)
+- This action uses Quant CLI v7 (`quantcdn/cli:7.1.1@sha256:cefe76b4…`, pinned by digest)
 - For search functionality, please use the dedicated search action
 - Make sure your `QUANT_TOKEN` is stored securely in your repository secrets
 
@@ -183,8 +184,9 @@ The action runs in this order:
    `api-base-url` must be set.
 2. **Validate rules access** with a dry run: token scope, manifest and drift are
    checked before anything is uploaded.
-3. Deploy functions, then assets.
-4. **Deploy rules.**
+3. **Declare KV indexes**, when `kv-indexes` is set (see [KV indexes](#kv-indexes)).
+4. Deploy functions, then assets.
+5. **Deploy rules.**
 
 Rules deployed this way are managed in code and are read-only in the dashboard.
 If one was changed outside code anyway, step 2 fails before any upload and the
@@ -192,9 +194,34 @@ log lists the changed fields. Set `rules-force: true` for one run to overwrite
 those rules with the manifest; it never takes over a rule the manifest did not
 create.
 
-If step 4 fails after the uploads (for example a transient portal error), the new
+If step 5 fails after the uploads (for example a transient portal error), the new
 assets are live with the previous rules. Re-run the workflow: deploys are
 idempotent, so the rules step converges and unchanged assets are skipped.
+
+## KV indexes
+
+Provide `kv-indexes: quant/meta.json` with `api-token` and `api-base-url` to
+declare the KV indexes of the stores in `quant/meta.json` before the functions
+deploy:
+
+```yaml
+- uses: quantcdn/deploy-action@v7
+  with:
+    customer: your-customer-id
+    project: your-project-name
+    token: ${{ secrets.QUANT_TOKEN }}
+    dir: dist
+    functions: quant/edge-functions.json
+    kv-indexes: quant/meta.json
+    api-token: ${{ secrets.QUANT_API_TOKEN }}
+    api-base-url: ${{ vars.QUANT_BASE_URL }}
+```
+
+The step runs `quant kv-indexes`. It declares each index that the store does not
+have yet, and it never drops or changes an index. An index with a different
+definition from `meta.json` fails the step. The `api-token` needs the `kv:read`
+and `kv:write` scopes. If it does not have them, the step prints a warning and
+continues, and the indexes are not declared.
 
 ## License
 
@@ -202,7 +229,7 @@ MIT License
 
 ## Upgrading from v6 to v7
 
-v7 runs Quant CLI 7 (7.0.1 from deploy-action v7.0.1). The only breaking change is for edge functions:
+v7 runs Quant CLI 7 (7.1.1 from deploy-action v7.1.0). The only breaking change is for edge functions:
 
 - Every entry in the `functions` manifest needs an explicit `uuid`. v6 derived
   one from `id` when it was missing. v7 fails the "Deploy Functions" step (or the

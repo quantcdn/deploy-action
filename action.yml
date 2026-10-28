@@ -62,6 +62,9 @@ inputs:
     description: "Overwrite managed rules changed outside code (never takes over another rule)"
     required: false
     default: "false"
+  kv-indexes:
+    description: "Path to quant/meta.json; declares its KV indexes with the project-scoped api-token"
+    required: false
 runs:
   using: "composite"
   steps:
@@ -80,7 +83,7 @@ runs:
 
     - name: Validate Rules Access
       if: inputs.rules != ''
-      uses: "docker://quantcdn/cli:7.0.1@sha256:d85c0969bd55fe10393e358a47670c551626335c45d6c7463ac0753074722880"
+      uses: "docker://quantcdn/cli:7.1.1@sha256:cefe76b4374d30284f51f54b51607001350ade5f06f41b2dba294cc00518c58b"
       env:
         QUANT_API_TOKEN: ${{ inputs.api-token }}
         QUANT_BASE_URL: ${{ inputs.api-base-url }}
@@ -94,9 +97,33 @@ runs:
           --force=${{ inputs.rules-force }}
           --dry-run
 
+    - name: Validate KV Index Inputs
+      if: inputs.kv-indexes != ''
+      shell: bash
+      env:
+        KV_INDEXES: ${{ inputs.kv-indexes }}
+        CUSTOMER: ${{ inputs.customer }}
+        PROJECT: ${{ inputs.project }}
+        API_TOKEN: ${{ inputs.api-token }}
+        API_BASE_URL: ${{ inputs.api-base-url }}
+      run: '"$GITHUB_ACTION_PATH/scripts/validate-kv-indexes-inputs.sh"'
+
+    - name: Declare KV Indexes
+      if: inputs.kv-indexes != ''
+      uses: "docker://quantcdn/cli:7.1.1@sha256:cefe76b4374d30284f51f54b51607001350ade5f06f41b2dba294cc00518c58b"
+      env:
+        QUANT_API_TOKEN: ${{ inputs.api-token }}
+        QUANT_BASE_URL: ${{ inputs.api-base-url }}
+      with:
+        args: >
+          kv-indexes
+          "${{ inputs.kv-indexes }}"
+          -c "${{ inputs.customer }}"
+          -p "${{ inputs.project }}"
+
     - name: Deploy Functions
       if: inputs.functions != ''
-      uses: "docker://quantcdn/cli:7.0.1@sha256:d85c0969bd55fe10393e358a47670c551626335c45d6c7463ac0753074722880"
+      uses: "docker://quantcdn/cli:7.1.1@sha256:cefe76b4374d30284f51f54b51607001350ade5f06f41b2dba294cc00518c58b"
       env:
         CUSTOMER: ${{ inputs.customer }}
         TOKEN: ${{ inputs.token }}
@@ -113,7 +140,7 @@ runs:
 
     - name: Deploy Assets
       if: inputs.dir != ''
-      uses: "docker://quantcdn/cli:7.0.1@sha256:d85c0969bd55fe10393e358a47670c551626335c45d6c7463ac0753074722880"
+      uses: "docker://quantcdn/cli:7.1.1@sha256:cefe76b4374d30284f51f54b51607001350ade5f06f41b2dba294cc00518c58b"
       with:
         args: >
           deploy
@@ -132,7 +159,7 @@ runs:
 
     - name: Deploy Rules
       if: inputs.rules != ''
-      uses: "docker://quantcdn/cli:7.0.1@sha256:d85c0969bd55fe10393e358a47670c551626335c45d6c7463ac0753074722880"
+      uses: "docker://quantcdn/cli:7.1.1@sha256:cefe76b4374d30284f51f54b51607001350ade5f06f41b2dba294cc00518c58b"
       env:
         QUANT_API_TOKEN: ${{ inputs.api-token }}
         QUANT_BASE_URL: ${{ inputs.api-base-url }}
