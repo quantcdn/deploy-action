@@ -163,7 +163,7 @@ jobs:
 
 ## Notes
 
-- This action uses Quant CLI v7 (`quantcdn/cli:7.1.1@sha256:cefe76b4…`, pinned by digest)
+- This action uses Quant CLI v7 (`quantcdn/cli:7.2.0@sha256:efc4cacf…`, pinned by digest)
 - For search functionality, please use the dedicated search action
 - Make sure your `QUANT_TOKEN` is stored securely in your repository secrets
 
@@ -241,3 +241,10 @@ v7 runs Quant CLI 7 (7.1.1 from deploy-action v7.1.0). The only breaking change 
   `description`, unique `uuid` and `id`).
 
 `@v6` is not changed and keeps CLI 6.3.0.
+
+## Runtime security
+
+The action pins the maintained Quant CLI 7.2.0 multiarchitecture image by digest.
+It includes Node 22.23.4, with the CVE-2026-111497 Brotli decoder fix.
+Update the action reference to receive this image; historical pinned action
+SHAs and container digests retain their original contents.
