@@ -83,7 +83,7 @@ runs:
 
     - name: Validate Rules Access
       if: inputs.rules != ''
-      uses: "docker://quantcdn/cli:7.1.1@sha256:cefe76b4374d30284f51f54b51607001350ade5f06f41b2dba294cc00518c58b"
+      uses: "docker://quantcdn/cli:7.2.0@sha256:efc4cacf7f347cdd466623f73c9bda8845fe2b6777c94124cee2c1afa497e682"
       env:
         QUANT_API_TOKEN: ${{ inputs.api-token }}
         QUANT_BASE_URL: ${{ inputs.api-base-url }}
@@ -110,7 +110,7 @@ runs:
 
     - name: Declare KV Indexes
       if: inputs.kv-indexes != ''
-      uses: "docker://quantcdn/cli:7.1.1@sha256:cefe76b4374d30284f51f54b51607001350ade5f06f41b2dba294cc00518c58b"
+      uses: "docker://quantcdn/cli:7.2.0@sha256:efc4cacf7f347cdd466623f73c9bda8845fe2b6777c94124cee2c1afa497e682"
       env:
         QUANT_API_TOKEN: ${{ inputs.api-token }}
         QUANT_BASE_URL: ${{ inputs.api-base-url }}
@@ -123,7 +123,7 @@ runs:
 
     - name: Deploy Functions
       if: inputs.functions != ''
-      uses: "docker://quantcdn/cli:7.1.1@sha256:cefe76b4374d30284f51f54b51607001350ade5f06f41b2dba294cc00518c58b"
+      uses: "docker://quantcdn/cli:7.2.0@sha256:efc4cacf7f347cdd466623f73c9bda8845fe2b6777c94124cee2c1afa497e682"
       env:
         CUSTOMER: ${{ inputs.customer }}
         TOKEN: ${{ inputs.token }}
@@ -140,7 +140,7 @@ runs:
 
     - name: Deploy Assets
       if: inputs.dir != ''
-      uses: "docker://quantcdn/cli:7.1.1@sha256:cefe76b4374d30284f51f54b51607001350ade5f06f41b2dba294cc00518c58b"
+      uses: "docker://quantcdn/cli:7.2.0@sha256:efc4cacf7f347cdd466623f73c9bda8845fe2b6777c94124cee2c1afa497e682"
       with:
         args: >
           deploy
@@ -159,7 +159,7 @@ runs:
 
     - name: Deploy Rules
       if: inputs.rules != ''
-      uses: "docker://quantcdn/cli:7.1.1@sha256:cefe76b4374d30284f51f54b51607001350ade5f06f41b2dba294cc00518c58b"
+      uses: "docker://quantcdn/cli:7.2.0@sha256:efc4cacf7f347cdd466623f73c9bda8845fe2b6777c94124cee2c1afa497e682"
       env:
         QUANT_API_TOKEN: ${{ inputs.api-token }}
         QUANT_BASE_URL: ${{ inputs.api-base-url }}
